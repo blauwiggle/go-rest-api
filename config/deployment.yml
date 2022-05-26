@@ -1,6 +1,6 @@
 ---
 apiVersion: apps/v1
-kind: deployment
+kind: Deployment
 metadata:
   name: comments-api
 spec:
@@ -21,6 +21,10 @@ spec:
       containers:
       - name: application
         image: "blauwiggle/comments-api:latest"
+        resources:
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
         imagePullPolicy: Always
         ports:
           - containerPort: 8080
