@@ -1,32 +1,40 @@
 package main
 
 import (
-	"fmt"
 	"net/http"
 
 	"github.com/blauwiggle/go-rest-api/internal/comment"
 	"github.com/blauwiggle/go-rest-api/internal/database"
 	transportHTTP "github.com/blauwiggle/go-rest-api/internal/transport/http"
+
+	log "github.com/sirupsen/logrus"
 )
 
-// App - the struct which contains things like pointers to the database, etc.
-type App struct{}
+// App - contain application information
+type App struct {
+	Name    string
+	Version string
+}
 
 // Run - sets up our application and starts the server
 func (app *App) Run() error {
-	fmt.Println("Starting up our REST API")
+	log.SetFormatter(&log.JSONFormatter{})
+	log.WithFields(log.Fields{
+		"AppName":    app.Name,
+		"AppVersion": app.Version,
+	}).Info("Setting up our application")
 
 	var err error
 	db, err := database.NewDatabase()
 
 	if err != nil {
-		fmt.Println("Failed to connect to database")
+		log.Error("Failed to connect to database")
 		return err
 	}
 
 	err = database.MigrateDB(db)
 	if err != nil {
-		fmt.Println("Failed to migrate database")
+		log.Error("Failed to migrate database")
 		return err
 	}
 
@@ -36,7 +44,7 @@ func (app *App) Run() error {
 	handler.SetupRoutes()
 
 	if err := http.ListenAndServe(":8080", handler.Router); err != nil {
-		fmt.Println("Failed to start our REST API")
+		log.Error("Failed to start our REST API")
 		return err
 	}
 
@@ -44,12 +52,14 @@ func (app *App) Run() error {
 }
 
 func main() {
-	fmt.Println("Go REST API")
-	app := App{}
+	app := App{
+		Name:    "Go Commenting REST API",
+		Version: "1.0.0",
+	}
 
 	if err := app.Run(); err != nil {
-		fmt.Println("Error starting up our REST API")
-		fmt.Println(err)
+		log.Error("Error starting up our REST API")
+		log.Fatal(err)
 	}
 
 }
